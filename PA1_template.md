@@ -1,18 +1,15 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
-```{r, warning=FALSE}
+
+```r
 # Load required libraries
 library(plyr)
 library(lattice)
 ```
 
 ## Loading and preprocessing the data
-```{r}
+
+```r
 # Unpack the CSV if necessary
 if (!file.exists("activity.csv")) {
   unzip("activity.zip")
@@ -23,7 +20,8 @@ data <- read.csv("activity.csv", header=T, sep=",", na.strings="NA", colClasses=
 ```
 
 ## What is mean total number of steps taken per day?
-```{r}
+
+```r
 # Use plyr to summarise steps by day
 stepsPerDay <- ddply(data, ~date, summarise, steps=sum(steps, na.rm=TRUE))
 
@@ -39,11 +37,14 @@ hist(stepsPerDay$steps,
      ylim=c(0,30)
 )
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
   
-The mean number of steps per day is **`r round(stepsMean, 2)`** and the median number of steps per day is **`r stepsMedian`**.
+The mean number of steps per day is **9354.23** and the median number of steps per day is **10395**.
 
 ## What is the average daily activity pattern?
-```{r}
+
+```r
 # Use plyr to summarise the mean number of steps per 5 min interval
 stepsPerInterval <- ddply(data, ~interval, summarise, steps=mean(steps, na.rm=TRUE))  
 
@@ -53,26 +54,31 @@ plot(stepsPerInterval,
      xlab="Time",
      ylab="Average number of steps"
 ) 
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
+
+```r
 # Calculate the largest interval in the summary
 largestInterval <- stepsPerInterval$interval[stepsPerInterval$steps == max(stepsPerInterval$steps)]
 ```
 
 We can see here that the majority of activity is first thing in the morning, presumably travelling to work.
 
-On average across all days, the largest number of steps is recorded at **`r sprintf("%04dh", largestInterval)`**
+On average across all days, the largest number of steps is recorded at **0835h**
 
 ## Imputing missing values
-```{r}
+
+```r
 # Count missing step values
 numMissing <- sum(is.na(data$steps))
 ```
 
-The number of missing step variables is **`r numMissing`**  
+The number of missing step variables is **2304**  
 
 Now impute NA values with the mean number of steps:
-```{r, cache=TRUE}
 
+```r
 # IMPUTING STRATEGY
 # Use plyr to replace steps with NA values with the mean number of steps for any interval
 dataNoNA <- ddply(data, 
@@ -86,7 +92,8 @@ dataNoNA <- ddply(data,
 ```
 
 After imputing NA values, we can re-plot the above histogram:
-```{r}
+
+```r
 # Recalculate number of steps per day
 stepsPerDayNoNA <- ddply(dataNoNA, ~date, summarise, steps=sum(steps, na.rm=TRUE))
 
@@ -101,15 +108,17 @@ hist(stepsPerDayNoNA$steps,
      col="thistle2",
      ylim=c(0,40)
 )
-
 ```
 
-The mean number of steps per day, after imputing NA values with the average number of steps per interval is **`r stepsMeanNoNA`** and the median is **`r stepsMedianNoNA`**.
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png) 
+
+The mean number of steps per day, after imputing NA values with the average number of steps per interval is **10765** and the median is **10762**.
 
 This is fairly close to the previous plot/calculation. Imputing NA values hasn't changed things considerably.
 
 ## Are there differences in activity patterns between weekdays and weekends?
-```{r, cache=TRUE}
+
+```r
 # Add a weekend/weekday factor column
 dayType <- c()
 for (idx in 1:nrow(dataNoNA)) {
@@ -136,5 +145,7 @@ xyplot(steps ~ interval | dayType,
        layout=c(1,2)
 )
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-8-1.png) 
 
 We see here that activity on weekends is spread throughout the day, whereas on weekdays the majority of the activity is first thing in the morning (possibly walking/commuting to work).
